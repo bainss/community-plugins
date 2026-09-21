@@ -1,5 +1,11 @@
 # @backstage-community/plugin-argocd
 
+## 3.1.3
+
+### Patch Changes
+
+- 4867b66: Assign the Argo CD entity contents to the deployment group.
+
 ## 3.1.2
 
 ### Patch Changes
