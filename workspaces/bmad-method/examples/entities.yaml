@@ -1,0 +1,22 @@
+---
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-component
+#
+# Points at the real bmad-code-org/BMAD-METHOD repo so the dev harness has at
+# least one entity with a resolvable `backstage.io/source-location` to
+# exercise `bmadAdoptionFactRetriever` / `bmadSprintStatusFactRetriever`
+# end to end via a real `UrlReaderService.readTree()` call. Note this repo
+# is the framework itself, not a project that has *adopted* BMad-METHOD in
+# it, so the expected result here is `bmadInstalled: false` — swap in the
+# source location of a real BMad-adopting repo to see the "installed" card
+# states.
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bmad-method
+  description: The BMad-METHOD framework itself (used here only as a real, public repo to exercise the fact retrievers against).
+  annotations:
+    backstage.io/source-location: url:https://github.com/bmad-code-org/BMAD-METHOD/tree/main/
+spec:
+  type: library
+  lifecycle: production
+  owner: guests

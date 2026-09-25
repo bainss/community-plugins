@@ -1,0 +1,34 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "main": "dist/index.cjs.js",
+  "types": "src/index.ts",
+  "private": true,
+  "backstage": {
+    "role": "backend"
+  },
+  "scripts": {
+    "build": "backstage-cli package build",
+    "build-image": "backstage-cli package build --build-dependencies",
+    "start": "backstage-cli package start",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean"
+  },
+  "dependencies": {
+    "@backstage/backend-defaults": "backstage:^",
+    "@backstage/backend-plugin-api": "backstage:^",
+    "@backstage/plugin-app-backend": "backstage:^",
+    "@backstage/plugin-auth-backend": "backstage:^",
+    "@backstage/plugin-auth-backend-module-guest-provider": "backstage:^",
+    "@backstage/plugin-catalog-backend": "backstage:^",
+    "@backstage/plugin-permission-backend": "backstage:^",
+    "@backstage/plugin-permission-backend-module-allow-all-policy": "backstage:^",
+    "@backstage/plugin-proxy-backend": "backstage:^",
+    "@backstage-community/plugin-tech-insights-backend": "backstage:^",
+    "@backstage-community/plugin-bmad-method-backend-module-tech-insights": "workspace:^"
+  },
+  "devDependencies": {
+    "@backstage/cli": "backstage:^"
+  }
+}

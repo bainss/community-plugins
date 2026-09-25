@@ -1,0 +1,57 @@
+app:
+  title: BMad-METHOD Example App
+  baseUrl: http://localhost:3000
+
+organization:
+  name: BMad-METHOD Example
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: better-sqlite3
+    connection: ':memory:'
+
+integrations:
+  github:
+    - host: github.com
+      # Optional, but recommended: without a token, UrlReaderService reads
+      # against the public GitHub API's low unauthenticated rate limit,
+      # which the fact retrievers below will hit quickly once more than a
+      # couple of entities are catalogued.
+      token: ${GITHUB_TOKEN}
+
+auth:
+  providers:
+    guest: {}
+
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location]
+  locations:
+    # Local example data, file locations are relative to the backend
+    # process, typically `packages/backend`.
+    - type: file
+      target: ../../examples/entities.yaml
+
+    # Local example organizational data
+    - type: file
+      target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+techInsights:
+  factRetrievers:
+    bmadAdoptionFactRetriever:
+      cadence: '*/15 * * * *'
+      lifecycle: { timeToLive: { weeks: 2 } }
+    bmadSprintStatusFactRetriever:
+      cadence: '*/15 * * * *'
+      lifecycle: { timeToLive: { weeks: 2 } }
