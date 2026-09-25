@@ -51,4 +51,11 @@ backend.add(
   ),
 );
 
+// Scaffolder, plus this workspace's BMad-METHOD creation actions
+backend.add(import('@backstage/plugin-scaffolder-backend'));
+backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
+backend.add(
+  import('@backstage-community/plugin-bmad-method-backend-module-scaffolder'),
+);
+
 backend.start();

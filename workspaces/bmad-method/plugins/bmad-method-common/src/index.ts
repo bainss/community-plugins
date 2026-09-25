@@ -21,4 +21,5 @@ export type {
   BmadEpicStatus,
   BmadActionItem,
   BmadSprintStatusFacts,
+  BmadHeadlessStatus,
 } from './types';

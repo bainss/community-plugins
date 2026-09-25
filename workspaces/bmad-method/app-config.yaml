@@ -34,7 +34,7 @@ auth:
 
 catalog:
   rules:
-    - allow: [Component, System, API, Resource, Location]
+    - allow: [Component, System, API, Resource, Location, Template]
   locations:
     # Local example data, file locations are relative to the backend
     # process, typically `packages/backend`.
@@ -46,6 +46,12 @@ catalog:
       target: ../../examples/org.yaml
       rules:
         - allow: [User, Group]
+
+    # The bmad:create-product-brief / bmad:create-prd creation wizard.
+    - type: file
+      target: ../../examples/templates/bmad-new-product.yaml
+      rules:
+        - allow: [Template]
 
 techInsights:
   factRetrievers:

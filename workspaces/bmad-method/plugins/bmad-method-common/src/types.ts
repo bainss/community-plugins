@@ -84,3 +84,53 @@ export interface BmadSprintStatusFacts {
   /** Days since lastUpdated, when it could be parsed. Staleness thresholds are a UI/checks concern, not this shape's. */
   ageInDays?: number;
 }
+
+/**
+ * The JSON status envelope a BMad-METHOD skill (bmad-product-brief,
+ * bmad-prd, ...) emits at the end of a headless run, per each skill's own
+ * "Headless Mode" contract (see `references/headless.md` / the inline
+ * "Headless Mode" section in the skill's own SKILL.md). Shape is shared
+ * across BMad's creation skills; individual skills populate a subset of the
+ * optional fields (e.g. `brief`/`prd`, `validation_report`).
+ *
+ * This is BMad's own documented contract, not something this plugin
+ * invented — kept permissive (all artifact fields optional) because a
+ * skill omits keys for artifacts it did not produce, and because BMad
+ * could add fields across releases without this being a breaking change
+ * here.
+ *
+ * @public
+ */
+export interface BmadHeadlessStatus {
+  status: 'complete' | 'partial' | 'blocked';
+  intent: 'create' | 'update' | 'validate';
+  /** Required by the contract when status is "blocked"; a one-sentence explanation. */
+  reason?: string;
+  /** Values the skill inferred without direct confirmation from the caller's inputs. */
+  assumptions?: string[];
+  /** Gaps that need a human decision before the artifact can be considered final. */
+  openQuestions?: string[];
+  /** Path to a produced product brief (bmad-product-brief, create/update intent). */
+  brief?: string;
+  /** Path to a produced PRD (bmad-prd, create/update intent). */
+  prd?: string;
+  /** Path to supplementary depth that didn't fit the main artifact. */
+  addendum?: string;
+  /** Path to the run's append-only decision/audit log. */
+  memlog?: string;
+  /** Path to a validation report (Validate intent). */
+  validationReport?: string;
+  /** Whether the skill offers to fold validation findings into an Update run. */
+  offerToUpdate?: boolean;
+  /** One-sentence summary of what changed and why (Update intent). */
+  changesSummary?: string;
+  /** Prior decisions an Update run found itself in tension with. */
+  conflictsWithPriorDecisions?: string[];
+  /** Downstream systems (Confluence, Notion, ticket trackers, ...) the skill routed the artifact to. */
+  externalHandoffs?: Array<{
+    directive: string;
+    tool?: string;
+    url?: string;
+    status: string;
+  }>;
+}

@@ -25,8 +25,11 @@
     "@backstage/plugin-permission-backend": "backstage:^",
     "@backstage/plugin-permission-backend-module-allow-all-policy": "backstage:^",
     "@backstage/plugin-proxy-backend": "backstage:^",
+    "@backstage/plugin-scaffolder-backend": "backstage:^",
+    "@backstage/plugin-scaffolder-backend-module-github": "backstage:^",
     "@backstage-community/plugin-tech-insights-backend": "backstage:^",
-    "@backstage-community/plugin-bmad-method-backend-module-tech-insights": "workspace:^"
+    "@backstage-community/plugin-bmad-method-backend-module-tech-insights": "workspace:^",
+    "@backstage-community/plugin-bmad-method-backend-module-scaffolder": "workspace:^"
   },
   "devDependencies": {
     "@backstage/cli": "backstage:^"
