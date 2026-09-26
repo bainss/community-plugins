@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/backstage/backstage/master/plugins/scaffolder-common/src/schema/TemplateV1beta3Schema.json
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: bmad-new-product-azure
+  title: New product (BMad-METHOD, Azure DevOps)
+  description: >-
+    Turns a free-text product idea into a product brief and PRD, using
+    BMad-METHOD's own bmad-product-brief and bmad-prd skills run headlessly
+    (via the Claude Agent SDK), then publishes the result to a new Azure
+    DevOps repository. Identical to bmad-new-product.yaml except for the
+    publish step — see that template for the fuller commentary on the
+    brief/PRD steps themselves.
+  tags:
+    - bmad
+    - bmad-method
+    - azure-devops
+spec:
+  owner: user:guest
+  type: bmad-product
+
+  parameters:
+    - title: Describe the product
+      required:
+        - productIdea
+        - projectName
+      properties:
+        productIdea:
+          title: Product idea
+          type: string
+          description: >-
+            Free-text description of the idea — what it is, who it is for,
+            and why it matters. This stands in for the "brain dump" a human
+            would otherwise give bmad-product-brief conversationally; the
+            skill infers what it can from it and records the rest as
+            assumptions or open questions rather than asking.
+          ui:widget: textarea
+          ui:options:
+            rows: 8
+        projectName:
+          title: Project name
+          type: string
+          description: Working name for the product.
+        notes:
+          title: Additional notes
+          type: string
+          description: >-
+            Optional scope, audience, or constraint notes, passed to both
+            the brief and PRD runs verbatim.
+          ui:widget: textarea
+    - title: Choose a repository location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository location
+          type: string
+          description: >-
+            Where to publish the generated brief and PRD. This step always
+            creates a new repository — it does not support targeting an
+            existing one yet. RepoUrlPicker renders Azure DevOps'
+            organization/project/repository fields for a dev.azure.com
+            host, producing the
+            "dev.azure.com?organization=...&project=...&repo=..." URL
+            shape publish:azure expects.
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - dev.azure.com
+
+  steps:
+    - id: install
+      name: Install BMad-METHOD
+      action: bmad:install
+
+    - id: brief
+      name: Draft product brief
+      action: bmad:create-product-brief
+      input:
+        productIdea: ${{ parameters.productIdea }}
+        projectName: ${{ parameters.projectName }}
+        notes: ${{ parameters.notes }}
+
+    - id: prd
+      name: Draft PRD
+      action: bmad:create-prd
+      input:
+        briefPath: ${{ steps.brief.output.briefPath }}
+        notes: ${{ parameters.notes }}
+
+    - id: publish
+      name: Publish to a new Azure DevOps repository
+      action: publish:azure
+      input:
+        description: >-
+          ${{ parameters.projectName }} — product brief and PRD drafted by
+          BMad-METHOD. Status: ${{ steps.prd.output.status }}. Check this
+          task's own log for the prd step's open_questions/assumptions
+          output before treating either document as final — a headless run
+          records what it could not confirm rather than asking, per BMad's
+          own headless-mode contract.
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}

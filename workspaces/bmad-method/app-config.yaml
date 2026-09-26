@@ -27,6 +27,12 @@ integrations:
       # which the fact retrievers below will hit quickly once more than a
       # couple of entities are catalogued.
       token: ${GITHUB_TOKEN}
+  # Only needed if you're using examples/templates/bmad-new-product-azure.yaml
+  # (publish:azure) instead of, or alongside, the GitHub template.
+  # azure:
+  #   - host: dev.azure.com
+  #     credentials:
+  #       - personalAccessToken: ${AZURE_TOKEN}
 
 auth:
   providers:
@@ -47,9 +53,16 @@ catalog:
       rules:
         - allow: [User, Group]
 
-    # The bmad:create-product-brief / bmad:create-prd creation wizard.
+    # The bmad:create-product-brief / bmad:create-prd creation wizard,
+    # publishing to a new GitHub repository.
     - type: file
       target: ../../examples/templates/bmad-new-product.yaml
+      rules:
+        - allow: [Template]
+
+    # Same wizard, publishing to a new Azure DevOps repository instead.
+    - type: file
+      target: ../../examples/templates/bmad-new-product-azure.yaml
       rules:
         - allow: [Template]
 
@@ -61,3 +74,25 @@ techInsights:
     bmadSprintStatusFactRetriever:
       cadence: '*/15 * * * *'
       lifecycle: { timeToLive: { weeks: 2 } }
+
+# Optional: picks which AI provider bmad:create-product-brief /
+# bmad:create-prd use to run BMad's skills headlessly. Leave this whole
+# block out (the default) to have them inherit whatever ANTHROPIC_*
+# variables are already set on this backend process's own environment —
+# see the "Creation wizard" section of the README for what that means in
+# practice. Uncomment one of the two shapes below to manage the choice
+# here instead.
+#
+# bmadMethod:
+#   ai:
+#     # Direct Anthropic API:
+#     anthropic:
+#       apiKey: ${ANTHROPIC_API_KEY}
+#     # Anthropic's Claude models hosted on Microsoft Foundry (Azure) —
+#     # alternative to `anthropic` above, not both. `resource` and
+#     # `baseUrl` are mutually exclusive; set one. `apiKey` and
+#     # `authToken` (a Microsoft Entra ID bearer token) are alternative
+#     # credential forms; `authToken` takes precedence if both are set.
+#     # foundry:
+#     #   resource: my-resource
+#     #   apiKey: ${ANTHROPIC_FOUNDRY_API_KEY}

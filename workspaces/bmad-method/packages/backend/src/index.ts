@@ -51,9 +51,14 @@ backend.add(
   ),
 );
 
-// Scaffolder, plus this workspace's BMad-METHOD creation actions
+// Scaffolder, plus this workspace's BMad-METHOD creation actions. Both
+// publish:github and publish:azure are registered so either
+// examples/templates/bmad-new-product.yaml (GitHub) or
+// examples/templates/bmad-new-product-azure.yaml (Azure DevOps) work
+// out of the box — a deployment only using one SCM can drop the other.
 backend.add(import('@backstage/plugin-scaffolder-backend'));
 backend.add(import('@backstage/plugin-scaffolder-backend-module-github'));
+backend.add(import('@backstage/plugin-scaffolder-backend-module-azure'));
 backend.add(
   import('@backstage-community/plugin-bmad-method-backend-module-scaffolder'),
 );

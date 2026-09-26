@@ -44,6 +44,17 @@ export interface RunBmadSkillOptions {
   prompt: string;
   /** Overrides the SDK's default model, when set. */
   model?: string;
+  /**
+   * Optional environment-variable overlay for the Claude Code CLI
+   * subprocess this spawns, merged on top of this process's own
+   * environment — typically the output of `resolveAiEnv`, used to route
+   * this run through a specific AI provider (e.g. Microsoft Foundry)
+   * rather than whatever ANTHROPIC_* variables the backend process itself
+   * happens to have set. When omitted, the subprocess inherits this
+   * process's environment unchanged, exactly as before this option
+   * existed.
+   */
+  env?: Record<string, string>;
   logger?: LoggerService;
   /** Aborts the run (and the underlying Claude Code subprocess) when triggered. */
   abortSignal?: AbortSignal;
@@ -76,10 +87,43 @@ export class BmadSkillRunError extends Error {
   }
 }
 
+/**
+ * Merges an optional environment overlay on top of this process's own
+ * environment, for the Claude Code CLI subprocess the Agent SDK spawns.
+ * Returns `undefined` when there is no overlay, so `query()` falls back to
+ * its own default (inherit `process.env` as-is) rather than this function
+ * re-implementing that default and risking a subtle mismatch with the SDK's
+ * own behavior.
+ *
+ * When the overlay configures Microsoft Foundry (any `ANTHROPIC_FOUNDRY_*`
+ * key), a plain `ANTHROPIC_API_KEY` inherited from this process's own
+ * environment is dropped from the merged result — Foundry and the direct
+ * Anthropic API are alternative auth paths for the same Claude Code CLI
+ * subprocess, and leaving both set would make it ambiguous which one the
+ * CLI actually used for this run.
+ */
+function buildSubprocessEnv(
+  overrides?: Record<string, string>,
+): NodeJS.ProcessEnv | undefined {
+  if (!overrides) {
+    return undefined;
+  }
+
+  const merged: NodeJS.ProcessEnv = { ...process.env };
+  const usesFoundry = Object.keys(overrides).some(key =>
+    key.startsWith('ANTHROPIC_FOUNDRY_'),
+  );
+  if (usesFoundry) {
+    delete merged.ANTHROPIC_API_KEY;
+  }
+
+  return { ...merged, ...overrides };
+}
+
 export async function runBmadSkill(
   options: RunBmadSkillOptions,
 ): Promise<RunBmadSkillResult> {
-  const { skill, cwd, prompt, model, logger, abortSignal } = options;
+  const { skill, cwd, prompt, model, env, logger, abortSignal } = options;
 
   const abortController = new AbortController();
   if (abortSignal) {
@@ -103,6 +147,7 @@ export async function runBmadSkill(
       // (BMad installs its own project-level config there), but not the
       // operator's personal user-level settings.
       settingSources: ['project'],
+      env: buildSubprocessEnv(env),
       abortController,
       stderr: data => logger?.debug(`[bmad:${skill}] stderr: ${data}`),
     },

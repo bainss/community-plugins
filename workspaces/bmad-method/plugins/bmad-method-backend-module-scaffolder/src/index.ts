@@ -24,6 +24,9 @@
 export { bmadMethodModuleScaffolder as default } from './module';
 export { createBmadInstallAction } from './actions/createBmadInstallAction';
 export { createBmadProductBriefAction } from './actions/createBmadProductBriefAction';
+export type { CreateBmadProductBriefActionOptions } from './actions/createBmadProductBriefAction';
 export { createBmadPrdAction } from './actions/createBmadPrdAction';
+export type { CreateBmadPrdActionOptions } from './actions/createBmadPrdAction';
 export { runBmadSkill, BmadSkillRunError } from './lib/runBmadSkill';
 export { parseHeadlessStatus } from './lib/parseHeadlessStatus';
+export { resolveAiEnv } from './lib/resolveAiEnv';

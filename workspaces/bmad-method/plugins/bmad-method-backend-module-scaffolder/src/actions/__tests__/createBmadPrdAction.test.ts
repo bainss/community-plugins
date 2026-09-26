@@ -76,4 +76,25 @@ describe('bmad:create-prd', () => {
 
     await expect(action.handler(ctx)).rejects.toThrow(/brief.md could not be found/);
   });
+
+  it('threads an env override through to runBmadSkill when the factory is given one', async () => {
+    runBmadSkillMock.mockResolvedValue({
+      resultText: JSON.stringify({ status: 'complete', intent: 'create' }),
+      isError: false,
+      totalCostUsd: 0,
+      sessionId: 's2',
+      numTurns: 1,
+    });
+
+    const action = createBmadPrdAction({
+      env: { ANTHROPIC_API_KEY: 'sk-test' },
+    });
+    const ctx = fakeActionContext({ briefPath: 'docs/brief.md' });
+
+    await action.handler(ctx);
+
+    expect(runBmadSkillMock).toHaveBeenCalledWith(
+      expect.objectContaining({ env: { ANTHROPIC_API_KEY: 'sk-test' } }),
+    );
+  });
 });

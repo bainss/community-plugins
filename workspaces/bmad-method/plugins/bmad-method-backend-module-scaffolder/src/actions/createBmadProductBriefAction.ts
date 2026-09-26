@@ -19,6 +19,23 @@ import { parseHeadlessStatus } from '../lib/parseHeadlessStatus';
 import { runBmadSkill } from '../lib/runBmadSkill';
 
 /**
+ * Options for {@link createBmadProductBriefAction}.
+ *
+ * @public
+ */
+export interface CreateBmadProductBriefActionOptions {
+  /**
+   * Environment-variable overlay passed through to every run of this
+   * action's `bmad-product-brief` skill invocation — typically the output
+   * of `resolveAiEnv`, used to select an AI provider (e.g. Microsoft
+   * Foundry) via `bmadMethod.ai` config instead of the backend process's
+   * raw environment. Omit to keep today's default: inherit whatever
+   * ANTHROPIC_* variables the backend process already has.
+   */
+  env?: Record<string, string>;
+}
+
+/**
  * Runs BMad-METHOD's `bmad-product-brief` skill headlessly (via the Claude
  * Agent SDK) to turn a free-text product idea into a `brief.md`, in the
  * task's workspace.
@@ -36,7 +53,11 @@ import { runBmadSkill } from '../lib/runBmadSkill';
  *
  * @public
  */
-export function createBmadProductBriefAction() {
+export function createBmadProductBriefAction(
+  options: CreateBmadProductBriefActionOptions = {},
+) {
+  const { env } = options;
+
   return createTemplateAction({
     id: 'bmad:create-product-brief',
     description:
@@ -98,6 +119,7 @@ export function createBmadProductBriefAction() {
         cwd: ctx.workspacePath,
         prompt: promptLines.join('\n'),
         model,
+        env,
         logger: ctx.logger,
         abortSignal: ctx.signal,
       });

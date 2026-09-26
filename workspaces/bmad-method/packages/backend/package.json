@@ -27,6 +27,7 @@
     "@backstage/plugin-proxy-backend": "backstage:^",
     "@backstage/plugin-scaffolder-backend": "backstage:^",
     "@backstage/plugin-scaffolder-backend-module-github": "backstage:^",
+    "@backstage/plugin-scaffolder-backend-module-azure": "backstage:^",
     "@backstage-community/plugin-tech-insights-backend": "backstage:^",
     "@backstage-community/plugin-bmad-method-backend-module-tech-insights": "workspace:^",
     "@backstage-community/plugin-bmad-method-backend-module-scaffolder": "workspace:^"

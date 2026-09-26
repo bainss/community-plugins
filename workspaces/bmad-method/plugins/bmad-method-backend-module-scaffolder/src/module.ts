@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-import { createBackendModule } from '@backstage/backend-plugin-api';
+import {
+  coreServices,
+  createBackendModule,
+} from '@backstage/backend-plugin-api';
 import { scaffolderActionsExtensionPoint } from '@backstage/plugin-scaffolder-node';
 import { createBmadInstallAction } from './actions/createBmadInstallAction';
 import { createBmadProductBriefAction } from './actions/createBmadProductBriefAction';
 import { createBmadPrdAction } from './actions/createBmadPrdAction';
+import { resolveAiEnv } from './lib/resolveAiEnv';
 
 /**
  * Registers three Scaffolder actions that drive BMad-METHOD's creation
@@ -33,6 +37,13 @@ import { createBmadPrdAction } from './actions/createBmadPrdAction';
  * between each creation action and the next — see the workspace README for
  * the recommended template shape.
  *
+ * The two skill-invoking actions pick up an optional `bmadMethod.ai` config
+ * block (see `config.d.ts` / `resolveAiEnv`) to choose an AI provider —
+ * direct Anthropic API or Microsoft Foundry — per deployment. With no such
+ * config, they fall back to whatever ANTHROPIC_* variables are already on
+ * this backend process's own environment, unchanged from before this
+ * option existed.
+ *
  * @public
  */
 export const bmadMethodModuleScaffolder = createBackendModule({
@@ -42,12 +53,14 @@ export const bmadMethodModuleScaffolder = createBackendModule({
     env.registerInit({
       deps: {
         scaffolderActions: scaffolderActionsExtensionPoint,
+        config: coreServices.rootConfig,
       },
-      async init({ scaffolderActions }) {
+      async init({ scaffolderActions, config }) {
+        const aiEnv = resolveAiEnv(config);
         scaffolderActions.addActions(
           createBmadInstallAction(),
-          createBmadProductBriefAction(),
-          createBmadPrdAction(),
+          createBmadProductBriefAction({ env: aiEnv }),
+          createBmadPrdAction({ env: aiEnv }),
         );
       },
     });

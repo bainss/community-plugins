@@ -33,9 +33,26 @@ function fakeQueryReturning(messages: unknown[]) {
   };
 }
 
+const SUCCESS_MESSAGE = {
+  type: 'result',
+  subtype: 'success',
+  is_error: false,
+  result: '{"status":"complete","intent":"create"}',
+  total_cost_usd: 0.05,
+  session_id: 'sess-1',
+  num_turns: 3,
+};
+
 describe('runBmadSkill', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     queryMock.mockReset();
+    process.env = { ...originalEnv };
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
   });
 
   it('resolves with the success result once the run completes', async () => {
@@ -43,15 +60,7 @@ describe('runBmadSkill', () => {
       fakeQueryReturning([
         { type: 'system', subtype: 'init' },
         { type: 'assistant' },
-        {
-          type: 'result',
-          subtype: 'success',
-          is_error: false,
-          result: '{"status":"complete","intent":"create"}',
-          total_cost_usd: 0.05,
-          session_id: 'sess-1',
-          num_turns: 3,
-        },
+        SUCCESS_MESSAGE,
       ]),
     );
 
@@ -132,5 +141,45 @@ describe('runBmadSkill', () => {
     await expect(
       runBmadSkill({ skill: 'bmad-prd', cwd: '/tmp/ws', prompt: 'headless: true' }),
     ).rejects.toThrow(/ended without a result message/);
+  });
+
+  it('passes no env override to query() when none is given', async () => {
+    queryMock.mockReturnValue(fakeQueryReturning([SUCCESS_MESSAGE]));
+
+    await runBmadSkill({ skill: 'bmad-prd', cwd: '/tmp/ws', prompt: 'x' });
+
+    expect(queryMock.mock.calls[0][0].options.env).toBeUndefined();
+  });
+
+  it('merges an env override onto process.env when given', async () => {
+    process.env.SOME_EXISTING_VAR = 'kept';
+    queryMock.mockReturnValue(fakeQueryReturning([SUCCESS_MESSAGE]));
+
+    await runBmadSkill({
+      skill: 'bmad-prd',
+      cwd: '/tmp/ws',
+      prompt: 'x',
+      env: { ANTHROPIC_API_KEY: 'abc' },
+    });
+
+    const passedEnv = queryMock.mock.calls[0][0].options.env;
+    expect(passedEnv.ANTHROPIC_API_KEY).toBe('abc');
+    expect(passedEnv.SOME_EXISTING_VAR).toBe('kept');
+  });
+
+  it('drops an inherited ANTHROPIC_API_KEY when a Foundry override is given', async () => {
+    process.env.ANTHROPIC_API_KEY = 'should-be-dropped';
+    queryMock.mockReturnValue(fakeQueryReturning([SUCCESS_MESSAGE]));
+
+    await runBmadSkill({
+      skill: 'bmad-prd',
+      cwd: '/tmp/ws',
+      prompt: 'x',
+      env: { ANTHROPIC_FOUNDRY_RESOURCE: 'my-resource' },
+    });
+
+    const passedEnv = queryMock.mock.calls[0][0].options.env;
+    expect(passedEnv.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(passedEnv.ANTHROPIC_FOUNDRY_RESOURCE).toBe('my-resource');
   });
 });

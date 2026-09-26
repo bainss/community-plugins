@@ -134,4 +134,44 @@ describe('bmad:create-product-brief', () => {
 
     await expect(action.handler(ctx)).rejects.toThrow(/did not end with a parseable/);
   });
+
+  it('threads an env override through to runBmadSkill when the factory is given one', async () => {
+    runBmadSkillMock.mockResolvedValue({
+      resultText: JSON.stringify({ status: 'complete', intent: 'create' }),
+      isError: false,
+      totalCostUsd: 0,
+      sessionId: 's1',
+      numTurns: 1,
+    });
+
+    const action = createBmadProductBriefAction({
+      env: { ANTHROPIC_FOUNDRY_RESOURCE: 'my-resource' },
+    });
+    const ctx = fakeActionContext({ productIdea: 'idea' });
+
+    await action.handler(ctx);
+
+    expect(runBmadSkillMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        env: { ANTHROPIC_FOUNDRY_RESOURCE: 'my-resource' },
+      }),
+    );
+  });
+
+  it('passes no env override to runBmadSkill when the factory is given none', async () => {
+    runBmadSkillMock.mockResolvedValue({
+      resultText: JSON.stringify({ status: 'complete', intent: 'create' }),
+      isError: false,
+      totalCostUsd: 0,
+      sessionId: 's1',
+      numTurns: 1,
+    });
+
+    const action = createBmadProductBriefAction();
+    const ctx = fakeActionContext({ productIdea: 'idea' });
+
+    await action.handler(ctx);
+
+    expect(runBmadSkillMock.mock.calls[0][0].env).toBeUndefined();
+  });
 });

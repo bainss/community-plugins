@@ -19,6 +19,23 @@ import { parseHeadlessStatus } from '../lib/parseHeadlessStatus';
 import { runBmadSkill } from '../lib/runBmadSkill';
 
 /**
+ * Options for {@link createBmadPrdAction}.
+ *
+ * @public
+ */
+export interface CreateBmadPrdActionOptions {
+  /**
+   * Environment-variable overlay passed through to every run of this
+   * action's `bmad-prd` skill invocation — typically the output of
+   * `resolveAiEnv`, used to select an AI provider (e.g. Microsoft Foundry)
+   * via `bmadMethod.ai` config instead of the backend process's raw
+   * environment. Omit to keep today's default: inherit whatever
+   * ANTHROPIC_* variables the backend process already has.
+   */
+  env?: Record<string, string>;
+}
+
+/**
  * Runs BMad-METHOD's `bmad-prd` skill headlessly (via the Claude Agent SDK)
  * to turn a product brief into a PRD, in the task's workspace.
  *
@@ -29,7 +46,11 @@ import { runBmadSkill } from '../lib/runBmadSkill';
  *
  * @public
  */
-export function createBmadPrdAction() {
+export function createBmadPrdAction(
+  options: CreateBmadPrdActionOptions = {},
+) {
+  const { env } = options;
+
   return createTemplateAction({
     id: 'bmad:create-prd',
     description:
@@ -87,6 +108,7 @@ export function createBmadPrdAction() {
         cwd: ctx.workspacePath,
         prompt: promptLines.join('\n'),
         model,
+        env,
         logger: ctx.logger,
         abortSignal: ctx.signal,
       });
